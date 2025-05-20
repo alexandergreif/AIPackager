@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+    <div class="mb-3">
+      <label for="installer" class="form-label">Select Installer (.exe or .msi):</label>
+      <input class="form-control" type="file" name="installer" accept=".exe,.msi" required>
+    </div>
+    <button class="btn btn-primary" type="submit">Upload & Generate Script</button>
+  </form>
+{% endblock %}
