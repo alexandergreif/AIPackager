@@ -15,3 +15,5 @@ def get_installer_type(filename: str) -> str:
         return 'EXE'
     else:
         return 'UNKNOWN'
+
+

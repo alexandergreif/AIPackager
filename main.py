@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from app.orchestrator import run_script_generation
 from app.utils.installer_utils import get_installer_type
+from app.agents.script_agent import generate_psadt_script
+import uuid, os, logging
 
 from dotenv import load_dotenv
 import os
@@ -23,45 +25,32 @@ os.makedirs('logs', exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
-@app.route('/')
-def home():
-    return render_template('upload.html')
-
-
-@app.route('/upload', methods=['POST'])
+@app.route("/", methods=["GET", "POST"])
 def upload():
-    file = request.files.get('installer')
-    if file and file.filename.endswith(('.exe', '.msi')):
-        filename = file.filename
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
+    #add some functionality that the user can give his instructions to the model.
+    # like providing installer details, silent switches or any config files which should be used
+    #for the package. Also add maybe custom registry keys for the special Organization you are part of.
+    # extract the name of the application, Version, and installer type.
+    # Get the installer type by using installer_utils.py get_installer_type().
+    # We work with the PackageID 0001 which is always four digits. It has to be unique
+    # because we will handle the whole packaging process flow with it.
+
+    #upload the file, get the information about the software which has been uploaded via get_installer_type
+    # also maybe use a function to extract the install switches?
+    #create a package request via the package request handler.
+
+    user_instructions = ""
 
 
-        # --- Extract App Name and Version from filename ---
-        base = os.path.splitext(filename)[0]
-        parts = base.split('_')
-        app_name = parts[0].replace('-', ' ').title()
-        version = parts[1] if len(parts) > 1 else "Unknown"
-        installer_type = get_installer_type(filename)
+@app.route("/result/<packageID>")
+def result(packageID):
 
-        # --- Generate Script Content ---
-        script_content = run_script_generation(app_name, version, installer_type)
-
-        # Save the script to the appropriate directory
-        script_path = os.path.join('downloads', app_name, version, 'Deploy-Application.ps1')
-        os.makedirs(os.path.dirname(script_path), exist_ok=True)
-        with open(script_path, 'w') as script_file:
-            script_file.write(script_content)
-
-        # Provide the download link to the user
-        return send_from_directory(os.path.dirname(script_path), 'Deploy-Application.ps1', as_attachment=True)
-
-    #return code 400 if the installer tpye is wrong.
-    return "Invalid file. Please upload a .exe or .msi.", 400
+    return render_template("result.html", script=content, id=id)
 
 
-@app.route('/download/<app>/<version>/<filename>')
-def download(app, version, filename):
+@app.route('/download/<packageID>')
+def download(packageID):
+    #if you visit the route with the package ID, the download for your package starts.
     path = os.path.join('downloads', app, version)
     return send_from_directory(path, filename, as_attachment=True)
 

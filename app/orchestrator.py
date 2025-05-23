@@ -1,4 +1,4 @@
-from agents.script_agent import generate_psadt_script
+from app.agents.script_agent import generate_psadt_script
 import logging
 
 
